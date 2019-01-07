@@ -125,7 +125,8 @@ for layer_name, param in net.params.iteritems():
     # prune_net_param[layer_name] = param
     # continue
     if layer_name not in svd_layer_info:
-        prune_net_param[layer_name] = param
+        for ele_new, ele_old in zip(prune_net_param[layer_name], param):
+            ele_new.data[:] = ele_old.data[:]
     else:
         conv_data = param[0].data
         bias_data = param[1].data
