@@ -224,6 +224,6 @@ for layer_name, param in net.params.iteritems():
         # prune_net_param[layer_name + '_dep'][0].data[:] = ts.reshape(prune_net_param[layer_name + '_dep'][0].data.shape)
         prune_net_param[layer_name + '_dep'][1].data[:] = bias_data
 
-prine_net_save_name = "/home/kun/PycharmProjects/CaffeSVDPrune/pose_prune.caffemodel"
-prune_net.save(prine_net_save_name)
+prune_net_save_name = "/home/kun/PycharmProjects/CaffeSVDPrune/pose_prune.caffemodel"
+prune_net.save(prune_net_save_name)
 print 'prune finished!!!'
