@@ -14,7 +14,11 @@ prine_net_save_name: prune_net_save_name
 
 ```
 
-2.run it (default is an example that prune the openpose model used to predict the human joints position)
+2.run it 
+```angular2html
+python2 svd_prune.py
+```
+(default is an example that prune the openpose model used to predict the human joints position)
 
 ### Contributors: 
 
