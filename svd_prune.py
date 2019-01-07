@@ -72,9 +72,84 @@ def NetProcess(prob, SVD_R):
     return Td,Ts
 
 
-# name : rank number
-svd_layer_info = {'conv5_1_CPM_L1': {"rank": 5, "input_num": 128}}
 
+def Decompose2(M, SVD_R, Kw, Kh, N):
+    # print ("SVD %d" % SVD_R)
+    u, sigma, vt = la.svd(M)
+    #SVD_R = len(sigma)
+    #print(SVD_R)
+    # print ("Sigma: ", sigma)
+    # print ("len(sigma): ", len(sigma))
+    if SVD_R > len(sigma):
+        print ("SVD_R is too large :-(")
+        sys.exit()
+    Ur = np.matrix(u[:, :SVD_R])
+    # Sr = sigma[:SVD_R, :SVD_R]
+    Sr = np.matrix(np.diag(sigma[:SVD_R]))
+    Vr = vt[:SVD_R, :]
+    # print ("Ur", Ur.shape)
+    # print ("Sr", Sr.shape)
+    # print ("Vr", Vr.shape)
+
+    D = Vr.reshape(SVD_R, 1, Kw, Kh)
+    S = Ur * Sr
+    S = np.array(S[:])
+    # print S.shape
+    S = S.reshape(N, SVD_R, 1, 1)
+    # print S.shape
+    return D,S
+
+def NetProcess2(prob, SVD_R):
+    N = prob.shape[0]
+    C = prob.shape[1]
+    Kw = prob.shape[2]
+    Kh = prob.shape[3]
+    list_d = np.zeros((C, SVD_R, 1, Kw, Kh), dtype=np.float32)
+    list_s = np.zeros((N, C, SVD_R, 1, 1), dtype=np.float32)
+    for i in range(C):
+        Mi = prob[:,i,:,:].reshape(N, Kw * Kh)
+        Di, Si = Decompose2(Mi, SVD_R, Kw, Kh, N)
+        # print "Di: ",Di.shape
+        # print "Si: ",Si.shape
+        list_d[i, :, :, :, :] = Di
+        list_s[:, i, :, :, :] = Si
+    Td = list_d.reshape(SVD_R * C, 1, Kw, Kh)
+    Ts = list_s.reshape(N, C*SVD_R, 1, 1)
+    return Td,Ts
+
+
+
+# name : rank number
+# svd_layer_info = {'conv5_1_CPM_L1': {"rank": 5, "input_num": 128}}
+
+svd_layer_info = {'Mconv5_stage6_L1': {"rank": 20, "input_num": 128}, 'Mconv4_stage6_L1': {"rank": 20, "input_num": 128}, 'Mconv3_stage6_L1': {"rank": 20, "input_num": 128}, 'Mconv2_stage6_L1': {"rank": 20, "input_num": 128}, 'Mconv1_stage6_L1': {"rank": 20, "input_num": 185},
+                  'Mconv5_stage6_L2': {"rank": 20, "input_num": 128},
+                  'Mconv4_stage6_L2': {"rank": 20, "input_num": 128},
+                  'Mconv3_stage6_L2': {"rank": 20, "input_num": 128},
+                  'Mconv2_stage6_L2': {"rank": 20, "input_num": 128}, 'Mconv1_stage6_L2': {"rank": 20, "input_num": 185}}
+
+
+# svd_layer_info = {'conv5_1_CPM_L1': {"rank": 5, "input_num": 128}, 'conv5_2_CPM_L1': {"rank": 5, "input_num": 128}, 'conv5_3_CPM_L1': {"rank": 5, "input_num": 128},
+#                   'conv5_1_CPM_L2': {"rank": 5, "input_num": 128},
+#                   'conv5_2_CPM_L2': {"rank": 5, "input_num": 128},
+#                   'conv5_3_CPM_L2': {"rank": 5, "input_num": 128}}
+#
+# # svd_layer_info = {'Mconv1_stage6_L1': {"rank": 20, "input_num": 185}, 'Mconv1_stage6_L2': {"rank": 20, "input_num": 185}}
+#
+# svd_layer_info_meta = {'Mconv5_stage5_L1': {"rank": 20, "input_num": 128}, 'Mconv4_stage5_L1': {"rank": 20, "input_num": 128}, 'Mconv3_stage5_L1': {"rank": 20, "input_num": 128}, 'Mconv2_stage5_L1': {"rank": 20, "input_num": 128}, 'Mconv1_stage5_L1': {"rank": 20, "input_num": 185},
+#                   'Mconv5_stage5_L2': {"rank": 20, "input_num": 128},
+#                   'Mconv4_stage5_L2': {"rank": 20, "input_num": 128},
+#                   'Mconv3_stage5_L2': {"rank": 20, "input_num": 128},
+#                   'Mconv2_stage5_L2': {"rank": 20, "input_num": 128}, 'Mconv1_stage5_L2': {"rank": 20, "input_num": 185}}
+#
+# # svd_layer_info = {}
+# for i in range(1):
+#     for k in svd_layer_info_meta:
+#         new_k = k.replace('stage5', 'stage' + str(i + 2))
+#         svd_layer_info[new_k] = svd_layer_info_meta[k]
+#         svd_layer_info[new_k]['rank'] = 10
+
+# svd_layer_info = svd_layer_info_meta
 prototxt_net = caffe_pb2.NetParameter()
 # prototxt_net = caffe.NetSpec()
 with open(DEPLOY_FILE, 'r') as f:
@@ -131,17 +206,20 @@ for layer_name, param in net.params.iteritems():
         conv_data = param[0].data
         bias_data = param[1].data
         print bias_data
-        td, ts = NetProcess(conv_data,  svd_layer_info[layer_name]['rank'])
-        c = prune_net_param[layer_name][0].data.shape[1]
-        for i in range(c):
-            prune_net_param[layer_name][0].data[:, i, :, :] = td[:, :, :, i]
+        td, ts = NetProcess2(conv_data,  svd_layer_info[layer_name]['rank'])
+        # c = prune_net_param[layer_name][0].data.shape[1]
+        # for i in range(c):
+        #     prune_net_param[layer_name][0].data[:, i, :, :] = td[:, :, :, i]
+        prune_net_param[layer_name][0].data[:] = td[:]
 
         # prune_net_param[layer_name][0].data[:] = td.swapaxes(3, 2).swapaxes(2, 1)
         # prune_net_param[layer_name][0].data[:] = td.reshape(prune_net_param[layer_name][0].data.shape)
         prune_net_param[layer_name][1].data[:] = np.zeros(shape=prune_net_param[layer_name][1].data.shape)
-        c = prune_net_param[layer_name + '_dep'][0].data.shape[1]
-        for i in range(c):
-            prune_net_param[layer_name + '_dep'][0].data[:, i, :, :] = ts[:, :, :, i]
+        # c = prune_net_param[layer_name + '_dep'][0].data.shape[1]
+        # for i in range(c):
+        #     prune_net_param[layer_name + '_dep'][0].data[:, i, :, :] = ts[:, :, :, i]
+        prune_net_param[layer_name + '_dep'][0].data[:] = ts[:]
+
         # prune_net_param[layer_name + '_dep'][0].data[:] = ts.swapaxes(3, 2).swapaxes(2, 1)
         # prune_net_param[layer_name + '_dep'][0].data[:] = ts.reshape(prune_net_param[layer_name + '_dep'][0].data.shape)
         prune_net_param[layer_name + '_dep'][1].data[:] = bias_data
