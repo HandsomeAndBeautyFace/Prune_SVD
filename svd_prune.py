@@ -59,14 +59,14 @@ def NetProcess(prob, SVD_R):
     Kw = prob.shape[2]
     Kh = prob.shape[3]
     list_d = np.zeros((C, SVD_R, Kw, Kh, 1), dtype=np.float32)
-    list_s = np.zeros((N, 1, 1, SVD_R, C), dtype=np.float32)
+    list_s = np.zeros((N, 1, 1, C, SVD_R), dtype=np.float32)
     for i in range(C):
         Mi = prob[:,i,:,:].reshape(N, Kw * Kh)
         Di, Si = Decompose(Mi, SVD_R, Kw, Kh, N)
         # print "Di: ",Di.shape
         # print "Si: ",Si.shape
         list_d[i, :, :, :, :] = Di
-        list_s[:, :, :, :, i] = Si
+        list_s[:, :, :, i, :] = Si
     Td = list_d.reshape(SVD_R * C, Kw, Kh, 1)
     Ts = list_s.reshape(N, 1, 1, SVD_R * C)
     return Td,Ts
