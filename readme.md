@@ -12,4 +12,18 @@ new_prototxt_filename: the pruned model
 prine_net_save_name: prune_net_save_name
 
 ```
+
 2. run it (default is an example that prune the openpose model used to predict the human joints position)
+
+### Contributors: 
+
+Tiantian Yan, Gorden Ren, Shikun Feng, and thanks to Shiwei Hou who provided the paper
+
+```angular2html
+@article{
+title={DAC: Data-free Automatic Acceleration of Convolutional Networks},
+author={Xin Li, Shuai Zhang, Bolan Jiang, Yingyong Qi, Mooi Choo Chuah, Ning Bi},
+journal={arXiv:1812.08374},
+year={2018}
+}
+```
