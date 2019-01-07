@@ -1,6 +1,6 @@
 ### How to use
 
-1. change the parameters below in script
+1.change the parameters below in script
 
 ```cpp
 caffe_root: you build path of pycaffe
@@ -14,7 +14,7 @@ prine_net_save_name: prune_net_save_name
 
 ```
 
-2. run it (default is an example that prune the openpose model used to predict the human joints position)
+2.run it (default is an example that prune the openpose model used to predict the human joints position)
 
 ### Contributors: 
 
