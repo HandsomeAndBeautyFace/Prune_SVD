@@ -22,7 +22,7 @@ python2 svd_prune.py
 
 ### Contributors: 
 
-Tiantian Yan, Gorden Ren, Shikun Feng, and thanks to Shiwei Hou who provided the paper
+[Tiantian Yan](https://github.com/ytt1790579195), [Gordon Ren](https://github.com/GordonRen), Shikun Feng, and thanks to Shiwei Hou who provided the paper
 
 ```angular2html
 @article{
